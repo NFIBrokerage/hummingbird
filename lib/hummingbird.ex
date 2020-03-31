@@ -106,7 +106,7 @@ defmodule Hummingbird do
   def determine_cross_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
       get_req_header(conn, "request-from-trace-id")
-      |> List.first()
+      |> List.first() || UUID.uuid4()
     else
       # fallback to this being an internal responsibility to assign a trace id
       determine_existing_trace_id(conn.assigns[:trace_id])
