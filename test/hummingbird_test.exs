@@ -17,7 +17,11 @@ defmodule HummingbirdTest do
     end
 
     test "call/2 returns conn with trace, parent, and span ids in assigns", c do
-      assert Hummingbird.call(c.conn_with_header, c.opts) === :thisshouldfail
+      actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
+
+      assert actual_conn.assigns.trace_id === c.expected_id
+      assert Map.has_key?(actual_conn.assigns, :span_id)
+      assert not is_nil(actual_conn.assigns.span_id)
     end
   end
 end
