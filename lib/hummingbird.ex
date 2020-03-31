@@ -80,9 +80,7 @@ defmodule Hummingbird do
   If not, check the headers for a span_id to hold onto and use that as your parent_id.
   The latter occurs when taking in IDs from external contexts, read: commands.
   If neither are set, just move along and don't correlate this span with another
-  YARD: events need something on 'em... like correlations so managers and projectors
-  can link their manage span to originating contexts, since not all integrations
-  are restful endpoints.
+
   YARD: doesn't seem to automatically create spans as part of the same trace
   without the trace ids being the same... this is counter to some of the things
   I read, so need to make sure I can link two traces together with a span
@@ -90,9 +88,8 @@ defmodule Hummingbird do
   """
   def determine_parent_id(conn) do
     if is_nil(conn.assigns[:parent_id]) do
-      conn.req_headers
-      |> List.keyfind("command-from-span-id", 0)
-      |> elem(1)
+      get_req_header(conn, "request-from-span-id")
+      |> List.first()
     else
       conn.assigns[:parent_id]
     end
@@ -104,11 +101,10 @@ defmodule Hummingbird do
   """
   def determine_cross_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
-      conn.req_headers
-      |> List.keyfind("command-from-trace-id", 0)
-      |> elem(1)
+      get_req_header(conn, "request-from-trace-id")
+      |> List.first()
     else
-      # fallback to this being an interal responsibility to assign a trace id
+      # fallback to this being an internal responsibility to assign a trace id
       determine_existing_trace_id(conn.assigns[:trace_id])
     end
   end
