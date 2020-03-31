@@ -1,6 +1,11 @@
 defmodule Hummingbird do
   @moduledoc """
-  Ships the conn to honeycomb.io to allow distributed tracing
+  Ships the conn to honeycomb.io to allow distributed tracing.
+
+  Assumes requests that come in populate two different headers:
+  request-from-trace-id
+  and
+  request-from-span-id
   """
 
   use Plug.Builder
@@ -50,8 +55,10 @@ defmodule Hummingbird do
   the output here, we can tell honeycomb to always look in the same place for
   user events. They don't (afaik) have an easy ability to translate different
   shapes of events on their side
+
   For example:  `booked_by:` is a different actor location than the assigns for
   a conn.
+
   Warning: this is a mix of translating on the way out to OpenCensus+Honeycomb
   language. Don't know enough at this moment to disambiguate the two languages.
   """
@@ -59,10 +66,7 @@ defmodule Hummingbird do
     %Event{
       time: Event.now(),
       data: %{
-        # YARD: not really sure what to do here since there are all kinds of
-        # request types... not blocking on this and instead focusing on
-        # command handling demo.
-        name: "sourcing_request",
+        name: "http_request",
         conn: conn,
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
