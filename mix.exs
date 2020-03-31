@@ -6,8 +6,10 @@ defmodule Hummingbird.MixProject do
       app: :hummingbird,
       version: "0.1.0",
       elixir: "~> 1.7",
-      start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases(),
+      test_coverage: [tool: ExCoveralls],
+      start_permanent: Mix.env() == :prod
     ]
   end
 
@@ -21,8 +23,34 @@ defmodule Hummingbird.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
+      {:plug, "~> 1.7"},
+      {:elixir_uuid, "~> 1.2"},
+      {:opencensus_honeycomb, "~> 0.2.1"},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.11", only: :test}
     ]
+  end
+
+  defp aliases do
+    [
+      bless: [&bless/1]
+    ]
+  end
+
+  defp bless(_) do
+    [
+      {"compile", ["--force", "--warnings-as-errors"]},
+      {"coveralls.html", []},
+      {"format", ["--check-formatted"]},
+      {"credo", []},
+      {"dialyzer", []}
+    ]
+    |> Enum.each(fn {task, args} ->
+      [:cyan, "Running #{task} with args #{inspect(args)}"]
+      |> IO.ANSI.format()
+      |> IO.puts()
+
+      Mix.Task.run(task, args)
+    end)
   end
 end
