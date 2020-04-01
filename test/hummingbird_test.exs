@@ -37,18 +37,16 @@ defmodule HummingbirdTest do
 
       [
         expected_id: expected_id,
-        conn_with_header:
-          conn(:get, "/foo")
-          |> assign(:trace_id, nil)
+        conn_with_header: conn(:get, "/foo")
       ]
     end
 
-    test "call/2 returns conn with trace, parent, and span ids in assigns with all three set",
+    test "call/2 returns conn with new trace, and span ids in assigns and no parent",
          c do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
       assert not is_nil(actual_conn.assigns.trace_id)
-      assert not is_nil(actual_conn.assigns.parent_id)
+      assert is_nil(actual_conn.assigns.parent_id)
       assert not is_nil(actual_conn.assigns.span_id)
     end
   end

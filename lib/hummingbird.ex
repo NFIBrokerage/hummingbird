@@ -26,12 +26,16 @@ defmodule Hummingbird do
     conn =
       conn
       |> assign(
+        # ensures old span from previous conn request is not set
+        :span_id,
+        nil
+      )
+      |> assign(
         :trace_id,
         determine_cross_trace_id(conn)
       )
       |> assign(
         :parent_id,
-        # because it was the previous span_id kept in the conn
         determine_parent_id(conn)
       )
       |> assign(
@@ -81,8 +85,10 @@ defmodule Hummingbird do
 
   @doc """
   If a span has already been created for this conn, just use that as the parent.
+
   If not, check the headers for a span_id to hold onto and use that as your parent_id.
   The latter occurs when taking in IDs from external contexts, read: commands.
+
   If neither are set, just move along and don't correlate this span with another
 
   YARD: doesn't seem to automatically create spans as part of the same trace
@@ -91,11 +97,12 @@ defmodule Hummingbird do
   setting parentid of another trace.
   """
   def determine_parent_id(conn) do
-    if is_nil(conn.assigns[:parent_id]) do
+    if is_nil(conn.assigns[:span_id]) do
+      # wasn't set previously so check header
       get_req_header(conn, "request-from-span-id")
-      |> List.first() || UUID.uuid4()
+      |> List.first()
     else
-      conn.assigns[:parent_id]
+      conn.assigns[:span_id]
     end
   end
 
