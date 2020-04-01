@@ -120,6 +120,9 @@ defmodule Hummingbird do
   Removes private information from the conn before shipping.
   """
   def sanitize(conn) do
-    conn
+    %{
+      conn
+      | private: nil
+    }
   end
 end
