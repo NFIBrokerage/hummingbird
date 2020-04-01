@@ -93,7 +93,7 @@ defmodule Hummingbird do
   def determine_parent_id(conn) do
     if is_nil(conn.assigns[:parent_id]) do
       get_req_header(conn, "request-from-span-id")
-      |> List.first()
+      |> List.first() || UUID.uuid4()
     else
       conn.assigns[:parent_id]
     end
