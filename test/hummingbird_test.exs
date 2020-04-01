@@ -43,12 +43,12 @@ defmodule HummingbirdTest do
       ]
     end
 
-    test "call/2 returns conn with trace, parent, and span ids in assigns, with trace id passing through",
+    test "call/2 returns conn with trace, parent, and span ids in assigns with all three set",
          c do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
       assert not is_nil(actual_conn.assigns.trace_id)
-      assert is_nil(actual_conn.assigns.parent_id)
+      assert not is_nil(actual_conn.assigns.parent_id)
       assert not is_nil(actual_conn.assigns.span_id)
     end
   end
