@@ -72,4 +72,14 @@ defmodule HummingbirdTest do
       assert not is_nil(actual_conn.assigns.span_id)
     end
   end
+
+  describe "when building values for honeycomb event," do
+    test "sanitize/1 strips private information from the conn", c do
+      assumed_conn = Hummingbird.call(c.conn_with_header, c.opts)
+      assert not is_nil(assumed_conn.private)
+
+      actual_conn = Hummingbird.sanitize(assumed_conn)
+      assert actual_conn.private === nil
+    end
+  end
 end

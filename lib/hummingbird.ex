@@ -67,7 +67,7 @@ defmodule Hummingbird do
       time: Event.now(),
       data: %{
         name: "http_request",
-        conn: conn,
+        conn: sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
         span_id: conn.assigns[:span_id],
@@ -115,4 +115,11 @@ defmodule Hummingbird do
 
   def determine_existing_trace_id(nil), do: UUID.uuid4()
   def determine_existing_trace_id(existing_trace_id), do: existing_trace_id
+
+  @doc """
+  Removes private information from the conn before shipping.
+  """
+  def sanitize(conn) do
+    conn
+  end
 end
