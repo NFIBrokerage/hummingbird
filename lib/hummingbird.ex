@@ -26,11 +26,6 @@ defmodule Hummingbird do
     conn =
       conn
       |> assign(
-        # ensures old span from previous conn request is not set
-        :span_id,
-        nil
-      )
-      |> assign(
         :trace_id,
         determine_cross_trace_id(conn)
       )
