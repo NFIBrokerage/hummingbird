@@ -3,12 +3,9 @@ defmodule HummingbirdTest do
   use Plug.Test
   doctest Hummingbird
 
-  alias Hummingbird.Helpers
-  # TODO: move helpers test
-
   setup do
     [
-      opts: %{caller: FicticiousModuleShippingEvents}
+      opts: %{caller: FicticiousModuleShippingEvents, service_name: "example_service"}
     ]
   end
 
@@ -109,23 +106,11 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "when building values for honeycomb event," do
-    test "sanitize/1 strips private information from the plug-transformed conn", c do
-      assumed_conn = Hummingbird.call(conn(:get, "/foo"), c.opts)
-      assert not is_nil(assumed_conn.private)
-
-      actual_conn = Helpers.sanitize(assumed_conn)
-
-      assert actual_conn.private === nil
-      assert actual_conn.secret_key_base === nil
-    end
-  end
-
   describe "when calling init with the caller defined," do
     test "init/1 passes only the caller attribute" do
-      actual_opts = Hummingbird.init(moo: :foo, caller: "thisthing")
+      actual_opts = Hummingbird.init(moo: :foo, caller: "thisthing", service_name: "yourservice")
 
-      assert actual_opts === %{caller: "thisthing"}
+      assert actual_opts === %{caller: "thisthing", service_name: "yourservice"}
     end
   end
 end

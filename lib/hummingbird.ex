@@ -15,7 +15,8 @@ defmodule Hummingbird do
 
   def init(opts) do
     %{
-      caller: Keyword.get(opts, :caller)
+      caller: Keyword.get(opts, :caller),
+      service_name: Keyword.get(opts, :service_name)
     }
   end
 
@@ -78,6 +79,7 @@ defmodule Hummingbird do
         parent_id: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
+        service_name: opts.service_name,
         kind: "span_event"
       }
     }

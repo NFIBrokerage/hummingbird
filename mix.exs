@@ -37,6 +37,7 @@ defmodule Hummingbird.MixProject do
       {:elixir_uuid, "~> 1.2"},
       {:opencensus_honeycomb, "~> 0.2.1"},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.11", only: :test}
     ]
   end
