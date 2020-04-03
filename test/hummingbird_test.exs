@@ -136,7 +136,7 @@ defmodule HummingbirdTest do
           |> assign(:span_id, expected_parent_id)
           |> assign(:trace_id, expected_trace_id)
           |> assign(:parent_id, UUID.uuid4())
-          # |> put_req_header("request-from-span-id", UUID.uuid4())
+          |> put_req_header("request-from-span-id", UUID.uuid4())
           |> put_req_header("request-from-trace-id", UUID.uuid4())
       ]
     end
