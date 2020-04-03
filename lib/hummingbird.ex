@@ -33,7 +33,7 @@ defmodule Hummingbird do
       )
       |> assign(
         :trace_id,
-        determine_cross_trace_id(conn)
+        determine_trace_id(conn)
       )
       |> assign(
         :parent_id,
@@ -108,17 +108,14 @@ defmodule Hummingbird do
   Grabs the trace id sent over from initiating request.  If nah, starts a trace
   for within this application.
   """
-  def determine_cross_trace_id(conn) do
+  def determine_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
       conn
       |> get_req_header("request-from-trace-id")
       |> List.first() || UUID.uuid4()
     else
       # fallback to this being an internal responsibility to assign a trace id
-      determine_existing_trace_id(conn.assigns[:trace_id])
+      conn.assigns[:trace_id]
     end
   end
-
-  def determine_existing_trace_id(nil), do: UUID.uuid4()
-  def determine_existing_trace_id(existing_trace_id), do: existing_trace_id
 end
