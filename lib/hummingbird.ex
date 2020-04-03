@@ -11,6 +11,7 @@ defmodule Hummingbird do
   use Plug.Builder
 
   alias Opencensus.Honeycomb.{Event, Sender}
+  alias Hummingbird.Helpers
 
   def init(opts) do
     %{
@@ -70,7 +71,7 @@ defmodule Hummingbird do
       time: Event.now(),
       data: %{
         name: "http_request",
-        conn: sanitize(conn),
+        conn: Helpers.sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
         span_id: conn.assigns[:span_id],
@@ -118,15 +119,4 @@ defmodule Hummingbird do
 
   def determine_existing_trace_id(nil), do: UUID.uuid4()
   def determine_existing_trace_id(existing_trace_id), do: existing_trace_id
-
-  @doc """
-  Removes private information from the conn before shipping.
-  """
-  def sanitize(conn) do
-    %{
-      conn
-      | private: nil,
-        secret_key_base: nil
-    }
-  end
 end

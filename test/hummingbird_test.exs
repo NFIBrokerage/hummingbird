@@ -3,6 +3,9 @@ defmodule HummingbirdTest do
   use Plug.Test
   doctest Hummingbird
 
+  alias Hummingbird.Helpers
+  # TODO: move helpers test
+
   setup do
     [
       opts: %{caller: FicticiousModuleShippingEvents}
@@ -111,10 +114,18 @@ defmodule HummingbirdTest do
       assumed_conn = Hummingbird.call(conn(:get, "/foo"), c.opts)
       assert not is_nil(assumed_conn.private)
 
-      actual_conn = Hummingbird.sanitize(assumed_conn)
+      actual_conn = Helpers.sanitize(assumed_conn)
 
       assert actual_conn.private === nil
       assert actual_conn.secret_key_base === nil
+    end
+  end
+
+  describe "when calling init with the caller defined," do
+    test "init/1 passes only the caller attribute" do
+      actual_opts = Hummingbird.init(moo: :foo, caller: "thisthing")
+
+      assert actual_opts === %{caller: "thisthing"}
     end
   end
 end
