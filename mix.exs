@@ -9,6 +9,16 @@ defmodule Hummingbird.MixProject do
       deps: deps(),
       aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        credo: :test,
+        dialyzer: :test,
+        bless: :test
+      ],
+      dialyzer: [ignore_warnings: ".dialyzer.ignore_warnings"],
       start_permanent: Mix.env() == :prod
     ]
   end
@@ -27,6 +37,7 @@ defmodule Hummingbird.MixProject do
       {:elixir_uuid, "~> 1.2"},
       {:opencensus_honeycomb, "~> 0.2.1"},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.11", only: :test}
     ]
   end

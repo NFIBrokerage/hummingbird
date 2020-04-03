@@ -11,10 +11,12 @@ defmodule Hummingbird do
   use Plug.Builder
 
   alias Opencensus.Honeycomb.{Event, Sender}
+  alias Hummingbird.Helpers
 
   def init(opts) do
     %{
-      caller: Keyword.get(opts, :caller)
+      caller: Keyword.get(opts, :caller),
+      service_name: Keyword.get(opts, :service_name)
     }
   end
 
@@ -26,13 +28,12 @@ defmodule Hummingbird do
     conn =
       conn
       |> assign(
-        # ensures old span from previous conn request is not set
         :span_id,
         nil
       )
       |> assign(
         :trace_id,
-        determine_cross_trace_id(conn)
+        determine_trace_id(conn)
       )
       |> assign(
         :parent_id,
@@ -71,13 +72,14 @@ defmodule Hummingbird do
       time: Event.now(),
       data: %{
         name: "http_request",
-        conn: sanitize(conn),
+        conn: Helpers.sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
         span_id: conn.assigns[:span_id],
         parent_id: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
+        service_name: opts.service_name,
         kind: "span_event"
       }
     }
@@ -89,17 +91,13 @@ defmodule Hummingbird do
   If not, check the headers for a span_id to hold onto and use that as your parent_id.
   The latter occurs when taking in IDs from external contexts, read: commands.
 
-  If neither are set, just move along and don't correlate this span with another
-
-  YARD: doesn't seem to automatically create spans as part of the same trace
-  without the trace ids being the same... this is counter to some of the things
-  I read, so need to make sure I can link two traces together with a span
-  setting parentid of another trace.
+  If neither are set, this span should not have a parent.
   """
   def determine_parent_id(conn) do
     if is_nil(conn.assigns[:span_id]) do
       # wasn't set previously so check header
-      get_req_header(conn, "request-from-span-id")
+      conn
+      |> get_req_header("request-from-span-id")
       |> List.first()
     else
       conn.assigns[:span_id]
@@ -110,26 +108,14 @@ defmodule Hummingbird do
   Grabs the trace id sent over from initiating request.  If nah, starts a trace
   for within this application.
   """
-  def determine_cross_trace_id(conn) do
+  def determine_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
-      get_req_header(conn, "request-from-trace-id")
+      conn
+      |> get_req_header("request-from-trace-id")
       |> List.first() || UUID.uuid4()
     else
       # fallback to this being an internal responsibility to assign a trace id
-      determine_existing_trace_id(conn.assigns[:trace_id])
+      conn.assigns[:trace_id]
     end
-  end
-
-  def determine_existing_trace_id(nil), do: UUID.uuid4()
-  def determine_existing_trace_id(existing_trace_id), do: existing_trace_id
-
-  @doc """
-  Removes private information from the conn before shipping.
-  """
-  def sanitize(conn) do
-    %{
-      conn
-      | private: nil
-    }
   end
 end

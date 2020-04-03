@@ -5,8 +5,42 @@ defmodule HummingbirdTest do
 
   setup do
     [
-      opts: %{caller: FicticiousModuleShippingEvents}
+      opts: %{caller: FicticiousModuleShippingEvents, service_name: "example_service"}
     ]
+  end
+
+  describe "given no request-from-trace-id header," do
+    setup do
+      [
+        conn_without_header: conn(:get, "/foo")
+      ]
+    end
+
+    test "call/2 returns conn with new trace_id",
+         c do
+      actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
+
+      assert not is_nil(actual_conn.assigns.trace_id)
+      assert not is_nil(actual_conn.assigns.span_id)
+    end
+  end
+
+  describe "given no request-from-span-id header," do
+    setup do
+      [
+        conn_without_header: conn(:get, "/foo")
+      ]
+    end
+
+    test "call/2 returns conn with no parent_id",
+         c do
+      actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
+
+      assert not is_nil(actual_conn.assigns.trace_id)
+      assert not is_nil(actual_conn.assigns.span_id)
+
+      assert is_nil(actual_conn.assigns.parent_id)
+    end
   end
 
   describe "given a conn with request-from-trace-id header," do
@@ -26,7 +60,6 @@ defmodule HummingbirdTest do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
       assert actual_conn.assigns.trace_id === c.expected_id
-      assert Map.has_key?(actual_conn.assigns, :span_id)
       assert not is_nil(actual_conn.assigns.span_id)
     end
   end
@@ -68,18 +101,60 @@ defmodule HummingbirdTest do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
       assert actual_conn.assigns.parent_id === c.expected_id
-      assert Map.has_key?(actual_conn.assigns, :trace_id)
+      assert not is_nil(actual_conn.assigns.trace_id)
       assert not is_nil(actual_conn.assigns.span_id)
     end
   end
 
-  describe "when building values for honeycomb event," do
-    test "sanitize/1 strips private information from the plug-transformed conn", c do
-      assumed_conn = Hummingbird.call(conn(:get, "/foo"), c.opts)
-      assert not is_nil(assumed_conn.private)
+  describe "given a conn with no request-from-span-id header," do
+    setup do
+      [
+        conn_without_header: conn(:get, "/foo")
+      ]
+    end
 
-      actual_conn = Hummingbird.sanitize(assumed_conn)
-      assert actual_conn.private === nil
+    test "and no parent_id already exists in conn, call/2 does not presume to know the parent_id",
+         c do
+      actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
+
+      assert actual_conn.assigns.parent_id === nil
+      assert not is_nil(actual_conn.assigns.trace_id)
+      assert not is_nil(actual_conn.assigns.span_id)
+    end
+  end
+
+  describe "given conn attributes have been set, and headers have been set" do
+    setup do
+      expected_trace_id = "stable_trace_id"
+      expected_parent_id = "previous_span_id_from_previous_plug_call"
+
+      [
+        expected_trace_id: expected_trace_id,
+        expected_parent_id: expected_parent_id,
+        fully_loaded_conn:
+          conn(:get, "/foo")
+          |> assign(:span_id, expected_parent_id)
+          |> assign(:trace_id, expected_trace_id)
+          |> assign(:parent_id, UUID.uuid4())
+          |> put_req_header("request-from-span-id", UUID.uuid4())
+          |> put_req_header("request-from-trace-id", UUID.uuid4())
+      ]
+    end
+
+    test "parent and trace ids are not overwritten by header", c do
+      actual_conn = Hummingbird.call(c.fully_loaded_conn, c.opts)
+
+      assert actual_conn.assigns.parent_id === c.expected_parent_id
+      assert actual_conn.assigns.trace_id === c.expected_trace_id
+      assert not is_nil(actual_conn.assigns.span_id)
+    end
+  end
+
+  describe "when calling init with the caller defined," do
+    test "init/1 passes only the caller attribute" do
+      actual_opts = Hummingbird.init(moo: :foo, caller: "thisthing", service_name: "yourservice")
+
+      assert actual_opts === %{caller: "thisthing", service_name: "yourservice"}
     end
   end
 end
