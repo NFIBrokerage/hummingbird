@@ -71,7 +71,7 @@ defmodule Hummingbird do
     %Event{
       time: Event.now(),
       data: %{
-        name: "http_request",
+        # name: "http_request",
         conn: Helpers.sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
@@ -80,7 +80,6 @@ defmodule Hummingbird do
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
         service_name: opts.service_name
-        # kind: "span_event"
       }
     }
   end
