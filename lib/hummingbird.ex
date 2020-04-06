@@ -71,7 +71,6 @@ defmodule Hummingbird do
     %Event{
       time: Event.now(),
       data: %{
-        # name: "http_request",
         conn: Helpers.sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
@@ -80,6 +79,15 @@ defmodule Hummingbird do
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
         service_name: opts.service_name
+        # Does not appear important in the honeycomb.ui, leaving off
+        #
+        # name: "http_request",
+        #
+        # This is incorrect, but do not know how to programatically assign based on
+        # type.  My intuation is we would create a different build_ for that
+        # application.
+        #
+        # kind: "span_event"
       }
     }
   end
