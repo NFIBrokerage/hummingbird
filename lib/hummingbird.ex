@@ -79,8 +79,8 @@ defmodule Hummingbird do
         parent_id: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
-        service_name: opts.service_name,
-        kind: "span_event"
+        service_name: opts.service_name
+        # kind: "span_event"
       }
     }
   end
