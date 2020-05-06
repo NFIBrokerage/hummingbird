@@ -3,9 +3,7 @@ defmodule Hummingbird do
   Ships the conn to honeycomb.io to allow distributed tracing.
 
   Assumes requests that come in populate two different headers:
-  x-b3-traceid
-  and
-  x-b3-spanid
+  x-b3-traceid and x-b3-spanid
   """
 
   use Plug.Builder
