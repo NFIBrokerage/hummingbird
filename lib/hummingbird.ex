@@ -3,9 +3,9 @@ defmodule Hummingbird do
   Ships the conn to honeycomb.io to allow distributed tracing.
 
   Assumes requests that come in populate two different headers:
-  request-from-trace-id
+  x-b3-traceid
   and
-  request-from-span-id
+  x-b3-spanid
   """
 
   use Plug.Builder
@@ -21,8 +21,7 @@ defmodule Hummingbird do
   end
 
   @doc """
-  In this case, is an impure dispatching of conn information to the elixir
-  honeycomb client
+  An impure dispatching of conn information to the elixir honeycomb client
   """
   def call(conn, opts) do
     conn =
@@ -104,7 +103,7 @@ defmodule Hummingbird do
     if is_nil(conn.assigns[:span_id]) do
       # wasn't set previously so check header
       conn
-      |> get_req_header("request-from-span-id")
+      |> get_req_header("x-b3-spanid")
       |> List.first()
     else
       conn.assigns[:span_id]
@@ -118,7 +117,7 @@ defmodule Hummingbird do
   def determine_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
       conn
-      |> get_req_header("request-from-trace-id")
+      |> get_req_header("x-b3-traceid")
       |> List.first() || UUID.uuid4()
     else
       # fallback to this being an internal responsibility to assign a trace id
