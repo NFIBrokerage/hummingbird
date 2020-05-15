@@ -44,7 +44,6 @@ defmodule Hummingbird.MixProject do
       name: "hummingbird",
       files: ~w(lib .formatter.exs mix.exs README.md),
       licenses: [],
-      organization: "cuatro",
       links: %{"GitHub" => "https://github.com/NFIBrokerage/hummingbird"}
     ]
   end
@@ -63,6 +62,7 @@ defmodule Hummingbird.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:plug, "~> 1.7"},
       {:elixir_uuid, "~> 1.2"},
       {:opencensus_honeycomb, "~> 0.2.1"},
