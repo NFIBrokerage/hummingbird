@@ -44,6 +44,10 @@ defmodule Hummingbird.MixProject do
       name: "hummingbird",
       files: ~w(lib .formatter.exs mix.exs README.md),
       licenses: [],
+      # Removed as we're publishing this to the public package repository for
+      # the rest of the world to use.
+      #
+      # organization: "cuatro",
       links: %{"GitHub" => "https://github.com/NFIBrokerage/hummingbird"}
     ]
   end
