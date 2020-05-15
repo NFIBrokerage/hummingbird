@@ -3,9 +3,7 @@ defmodule Hummingbird do
   Ships the conn to honeycomb.io to allow distributed tracing.
 
   Assumes requests that come in populate two different headers:
-  request-from-trace-id
-  and
-  request-from-span-id
+  x-b3-traceid and x-b3-spanid
   """
 
   use Plug.Builder
@@ -21,8 +19,7 @@ defmodule Hummingbird do
   end
 
   @doc """
-  In this case, is an impure dispatching of conn information to the elixir
-  honeycomb client
+  An impure dispatching of conn information to the elixir honeycomb client
   """
   def call(conn, opts) do
     conn =
@@ -71,7 +68,6 @@ defmodule Hummingbird do
     %Event{
       time: Event.now(),
       data: %{
-        name: "http_request",
         conn: Helpers.sanitize(conn),
         caller: opts.caller,
         trace_id: conn.assigns[:trace_id],
@@ -79,8 +75,16 @@ defmodule Hummingbird do
         parent_id: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
-        service_name: opts.service_name,
-        kind: "span_event"
+        service_name: opts.service_name
+        # Does not appear important in the honeycomb.ui, leaving off
+        #
+        # name: "http_request",
+        #
+        # This is incorrect, but do not know how to programatically assign based on
+        # type.  My intuation is we would create a different build_ for that
+        # application.
+        #
+        # kind: "span_event"
       }
     }
   end
@@ -97,7 +101,7 @@ defmodule Hummingbird do
     if is_nil(conn.assigns[:span_id]) do
       # wasn't set previously so check header
       conn
-      |> get_req_header("request-from-span-id")
+      |> get_req_header("x-b3-spanid")
       |> List.first()
     else
       conn.assigns[:span_id]
@@ -111,7 +115,7 @@ defmodule Hummingbird do
   def determine_trace_id(conn) do
     if is_nil(conn.assigns[:trace_id]) do
       conn
-      |> get_req_header("request-from-trace-id")
+      |> get_req_header("x-b3-traceid")
       |> List.first() || UUID.uuid4()
     else
       # fallback to this being an internal responsibility to assign a trace id

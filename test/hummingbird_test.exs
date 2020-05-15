@@ -9,7 +9,7 @@ defmodule HummingbirdTest do
     ]
   end
 
-  describe "given no request-from-trace-id header," do
+  describe "given no x-b3-traceid header," do
     setup do
       [
         conn_without_header: conn(:get, "/foo")
@@ -25,7 +25,7 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "given no request-from-span-id header," do
+  describe "given no x-b3-spanid header," do
     setup do
       [
         conn_without_header: conn(:get, "/foo")
@@ -43,7 +43,7 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "given a conn with request-from-trace-id header," do
+  describe "given a conn with x-b3-traceid header," do
     setup do
       expected_id = UUID.uuid4()
 
@@ -51,7 +51,7 @@ defmodule HummingbirdTest do
         expected_id: expected_id,
         conn_with_header:
           conn(:get, "/foo")
-          |> put_req_header("request-from-trace-id", expected_id)
+          |> put_req_header("x-b3-traceid", expected_id)
       ]
     end
 
@@ -64,7 +64,7 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "given a conn with nil trace id and no request-from-trace-id header," do
+  describe "given a conn with nil trace id and no x-b3-traceid header," do
     setup do
       expected_id = UUID.uuid4()
 
@@ -84,7 +84,7 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "given a conn with request-from-span-id header," do
+  describe "given a conn with x-b3-spanid header," do
     setup do
       expected_id = UUID.uuid4()
 
@@ -92,7 +92,7 @@ defmodule HummingbirdTest do
         expected_id: expected_id,
         conn_with_header:
           conn(:get, "/foo")
-          |> put_req_header("request-from-span-id", expected_id)
+          |> put_req_header("x-b3-spanid", expected_id)
       ]
     end
 
@@ -106,7 +106,7 @@ defmodule HummingbirdTest do
     end
   end
 
-  describe "given a conn with no request-from-span-id header," do
+  describe "given a conn with no x-b3-spanid header," do
     setup do
       [
         conn_without_header: conn(:get, "/foo")
@@ -136,8 +136,8 @@ defmodule HummingbirdTest do
           |> assign(:span_id, expected_parent_id)
           |> assign(:trace_id, expected_trace_id)
           |> assign(:parent_id, UUID.uuid4())
-          |> put_req_header("request-from-span-id", UUID.uuid4())
-          |> put_req_header("request-from-trace-id", UUID.uuid4())
+          |> put_req_header("x-b3-spanid", UUID.uuid4())
+          |> put_req_header("x-b3-traceid", UUID.uuid4())
       ]
     end
 
