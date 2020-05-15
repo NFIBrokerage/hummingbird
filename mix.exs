@@ -1,11 +1,20 @@
 defmodule Hummingbird.MixProject do
   use Mix.Project
 
+  {git_tag, _return_code} = System.cmd("git", ["describe", "--abbrev=0", "--tags"])
+
+  @version (case Regex.run(~r/^v([\d\.]+)/, git_tag, capture: :all_but_first) do
+              [version] -> version
+              nil -> "0.0.0"
+            end)
+
   def project do
     [
       app: :hummingbird,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.7",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
@@ -19,8 +28,29 @@ defmodule Hummingbird.MixProject do
         bless: :test
       ],
       dialyzer: [ignore_warnings: ".dialyzer.ignore_warnings"],
-      start_permanent: Mix.env() == :prod
+      test_coverage: [tool: ExCoveralls],
+      package: package(),
+      description: description(),
+      source_url: "https://github.com/NFIBrokerage/hummingbird",
+      name: "Hummingbird"
     ]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/fixtures"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp package do
+    [
+      name: "hummingbird",
+      files: ~w(lib .formatter.exs mix.exs README.md),
+      licenses: [],
+      organization: "cuatro",
+      links: %{"GitHub" => "https://github.com/NFIBrokerage/hummingbird"}
+    ]
+  end
+
+  defp description do
+    "honeycomb.io Phoenix plug to assist in tracing"
   end
 
   # Run "mix help compile.app" to learn about applications.
