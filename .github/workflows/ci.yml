@@ -66,6 +66,7 @@ jobs:
       env:
         MIX_ENV: dev
 
+    # TODO: read version from file
     - name: Determine the tag version
       env:
         GITHUB_REF: ${{ github.ref }}
@@ -77,7 +78,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
 
     - name: Publish library
-      # note, `--organization cuatro` is left off because we are publishing 
+      # note, `--organization cuatro` is left off because we are publishing
       # run: mix hex.publish --yes --organization cuatro
       run: mix hex.publish --yes
       if: startsWith(github.ref, 'refs/tags/v')

@@ -1,9 +1,12 @@
 defmodule Hummingbird.MixProject do
   use Mix.Project
 
-  {git_tag, _return_code} = System.cmd("git", ["describe", "--abbrev=0", "--tags"])
+  @version_file Path.join(__DIR__, ".library_version")
 
-  @version (case Regex.run(~r/^v([\d\.]+)/, git_tag, capture: :all_but_first) do
+  # a special module attribute that recompiles if targetted file has changed
+  @external_resource @version_file
+
+  @version (case Regex.run(~r/^v([\d\.]+)/, File.read!(@version_file), capture: :all_but_first) do
               [version] -> version
               nil -> "0.0.0"
             end)
