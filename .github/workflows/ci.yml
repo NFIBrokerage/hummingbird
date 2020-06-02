@@ -73,9 +73,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
 
     - name: Write tagged version to .library_version to ensure published
-      env:
-        GITHUB_REF: ${{ github.ref }}
-      run: echo "::set-env name=TAG::$(echo "$GITHUB_REF" | awk -F / '{print $3}')"
+      run: echo $TAG > .library_version
       if: startsWith(github.ref, 'refs/tags/v')
 
     - name: Determine the repository name
