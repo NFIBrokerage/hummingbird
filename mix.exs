@@ -3,7 +3,7 @@ defmodule Hummingbird.MixProject do
 
   @version_file Path.join(__DIR__, ".library_version")
 
-  # a special module attribute that recompiles if targetted file has changed
+  # a special module attribute that recompiles if targeted file has changed
   @external_resource @version_file
 
   @version (case Regex.run(~r/^v([\d\.]+)/, File.read!(@version_file), capture: :all_but_first) do
