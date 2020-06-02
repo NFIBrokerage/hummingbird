@@ -66,8 +66,13 @@ jobs:
       env:
         MIX_ENV: dev
 
-    # TODO: read version from file
     - name: Determine the tag version
+      env:
+        GITHUB_REF: ${{ github.ref }}
+      run: echo "::set-env name=TAG::$(echo "$GITHUB_REF" | awk -F / '{print $3}')"
+      if: startsWith(github.ref, 'refs/tags/v')
+
+    - name: Write tagged version to .library_version to ensure published
       env:
         GITHUB_REF: ${{ github.ref }}
       run: echo "::set-env name=TAG::$(echo "$GITHUB_REF" | awk -F / '{print $3}')"

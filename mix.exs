@@ -45,7 +45,8 @@ defmodule Hummingbird.MixProject do
   defp package do
     [
       name: "hummingbird",
-      files: ~w(lib .formatter.exs mix.exs README.md),
+      # these files get packaged and published with the library
+      files: ~w(lib .formatter.exs mix.exs README.md .library_version),
       licenses: [],
       # Removed as we're publishing this to the public package repository for
       # the rest of the world to use.
