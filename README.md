@@ -43,3 +43,5 @@ Currently, it looks for `x-b3-spanid` and `x-b3-traceid` headers on incoming req
 ## Proof
 
 ![Image of Trace Waterfall](images/waterfall.png)
+
+![Image of Trace Waterfall](https://github.com/NFIBrokerage/hummingbird/blob/master/images/waterfall.png?raw=true)
