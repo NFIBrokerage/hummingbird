@@ -40,7 +40,7 @@ config :opencensus_honeycomb,
 Currently, it looks for `x-b3-spanid` and `x-b3-traceid` headers on incoming request to create the trace.
 
 
-## Proof
+## Current Example
 
 ![Image of Trace Waterfall](images/waterfall.png)
 
