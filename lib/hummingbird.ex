@@ -25,8 +25,6 @@ defmodule Hummingbird do
     conn = set_trace_info(conn)
 
     send_span(conn, opts)
-
-    conn
   end
 
   @doc false
@@ -43,6 +41,8 @@ defmodule Hummingbird do
       build_generic_honeycomb_event(conn, opts)
     ]
     |> Sender.send_batch()
+
+    conn
   end
 
   @doc """
@@ -70,7 +70,7 @@ defmodule Hummingbird do
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
         serviceName: opts.service_name,
-        durationMs: conn.assigns[:request_duration],
+        durationMs: convert_time_unit(conn.assigns[:request_duration_native]),
         http: http_metadata_from_conn(conn)
         # This is incorrect, but do not know how to programatically assign based on
         # type.  My intuation is we would create a different build_ for that
@@ -79,6 +79,8 @@ defmodule Hummingbird do
         # kind: "span_event"
       }
     }
+
+    # |> IO.inspect(label: :event)
   end
 
   @doc """
@@ -155,5 +157,14 @@ defmodule Hummingbird do
       method: conn.method,
       protocol: scheme
     }
+  end
+
+  # converts native time to µs to ms
+  # we have to convert to µs first because System.convert_time_unit/3 will
+  # round the resulting time
+  defp convert_time_unit(nil), do: nil
+
+  defp convert_time_unit(native_time) when is_integer(native_time) do
+    System.convert_time_unit(native_time, :native, :microseconds) / 1000
   end
 end

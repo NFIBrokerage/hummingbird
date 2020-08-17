@@ -26,7 +26,7 @@ defmodule Hummingbird.Instrumentation do
         {time, conn_after_execution} = :timer.tc(fn -> super(conn_before_execution, opts) end)
 
         conn_after_execution
-        |> assign(:request_duration, System.convert_time_unit(time, :native, :millisecond))
+        |> assign(:request_duration_native, time)
         |> Hummingbird.send_span(unquote(opts) |> Hummingbird.init())
 
         conn_after_execution
