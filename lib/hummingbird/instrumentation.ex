@@ -1,6 +1,19 @@
 defmodule Hummingbird.Instrumentation do
   @moduledoc """
   Plug instrumentation for an endpoint which records durations
+
+  Configured with the same options as the `Hummingbird` plug.
+
+  ## Example
+
+      defmodule MyAppWeb.Endpoint do
+        use Phoenix.Endpoint, otp_app: :my_app
+
+        use Hummingbird.Instrumentation,
+          service_name: "my_app",
+          caller: __MODULE__
+
+        ..
   """
 
   defmacro __using__(opts) do
