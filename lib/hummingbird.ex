@@ -71,7 +71,7 @@ defmodule Hummingbird do
         route: conn.assigns[:request_path],
         serviceName: opts.service_name,
         durationMs: conn.assigns[:request_duration],
-        http: metadata_from_conn(conn)
+        http: http_metadata_from_conn(conn)
         # This is incorrect, but do not know how to programatically assign based on
         # type.  My intuation is we would create a different build_ for that
         # application.
@@ -137,7 +137,7 @@ defmodule Hummingbird do
   """
   def random_trace_id, do: random_span_id(32)
 
-  defp metadata_from_conn(%Plug.Conn{} = conn) do
+  defp http_metadata_from_conn(%Plug.Conn{} = conn) do
     scheme = Atom.to_string(conn.scheme)
 
     url =
