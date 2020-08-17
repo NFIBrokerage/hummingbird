@@ -33,6 +33,7 @@ defmodule Hummingbird do
     |> assign(:trace_id, determine_trace_id(conn))
     |> assign(:parent_id, determine_parent_id(conn))
     |> assign(:span_id, random_span_id())
+    |> assign(:span_start_time, Event.now())
   end
 
   @doc false
@@ -60,7 +61,7 @@ defmodule Hummingbird do
   """
   def build_generic_honeycomb_event(conn, opts) do
     %Event{
-      time: Event.now(),
+      time: conn.assigns.span_start_time,
       data: %{
         conn: Helpers.sanitize(conn),
         name: opts.caller,
