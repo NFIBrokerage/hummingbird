@@ -76,8 +76,7 @@ defmodule Hummingbird do
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
         serviceName: opts.service_name,
-        name: opts.service_name,
-        kind: "application"
+        name: opts.service_name
         # when applicable, add durationMs
         # ---
         # Does not appear important in the honeycomb.ui, leaving off
