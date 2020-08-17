@@ -157,4 +157,10 @@ defmodule HummingbirdTest do
       assert actual_opts === %{caller: "thisthing", service_name: "yourservice"}
     end
   end
+
+  test "random_span_id/0 only returns a string of downcase letters and numbers" do
+    for _n <- 1..100 do
+      assert Regex.match?(~r/^[a-z0-9]{16}$/, Hummingbird.random_span_id())
+    end
+  end
 end
