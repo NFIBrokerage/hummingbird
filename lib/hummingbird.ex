@@ -159,12 +159,6 @@ defmodule Hummingbird do
     }
   end
 
-  # converts native time to µs to ms
-  # we have to convert to µs first because System.convert_time_unit/3 will
-  # round the resulting time
   defp convert_time_unit(nil), do: nil
-
-  defp convert_time_unit(native_time) when is_integer(native_time) do
-    System.convert_time_unit(native_time, :native, :microseconds) / 1000
-  end
+  defp convert_time_unit(time) when is_integer(time), do: time / 1000
 end
