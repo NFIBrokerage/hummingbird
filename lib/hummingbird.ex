@@ -22,33 +22,27 @@ defmodule Hummingbird do
   An impure dispatching of conn information to the elixir honeycomb client
   """
   def call(conn, opts) do
-    conn =
-      conn
-      |> assign(
-        :span_id,
-        nil
-      )
-      |> assign(
-        :trace_id,
-        determine_trace_id(conn)
-      )
-      |> assign(
-        :parent_id,
-        determine_parent_id(conn)
-      )
-      |> assign(
-        :span_id,
-        # always set afterwards so as to accomodate the initial parent_id,
-        # which should be nil
-        random_span_id()
-      )
+    conn = set_trace_info(conn)
 
+    send_span(conn, opts)
+
+    conn
+  end
+
+  @doc false
+  def set_trace_info(conn) do
+    conn
+    |> assign(:trace_id, determine_trace_id(conn))
+    |> assign(:parent_id, determine_parent_id(conn))
+    |> assign(:span_id, random_span_id())
+  end
+
+  @doc false
+  def send_span(conn, opts) do
     [
       build_generic_honeycomb_event(conn, opts)
     ]
     |> Sender.send_batch()
-
-    conn
   end
 
   @doc """
@@ -69,20 +63,15 @@ defmodule Hummingbird do
       time: Event.now(),
       data: %{
         conn: Helpers.sanitize(conn),
-        caller: opts.caller,
+        name: opts.caller,
         traceId: conn.assigns[:trace_id],
         id: conn.assigns[:span_id],
         parentId: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
         serviceName: opts.service_name,
-        name: opts.service_name
-        # when applicable, add durationMs
-        # ---
-        # Does not appear important in the honeycomb.ui, leaving off
-        #
-        # name: "http_request",
-        #
+        durationMs: conn.assigns[:request_duration],
+        http: metadata_from_conn(conn)
         # This is incorrect, but do not know how to programatically assign based on
         # type.  My intuation is we would create a different build_ for that
         # application.
@@ -119,7 +108,7 @@ defmodule Hummingbird do
     if is_nil(conn.assigns[:trace_id]) do
       conn
       |> get_req_header("x-b3-traceid")
-      |> List.first() || UUID.uuid4()
+      |> List.first() || random_trace_id()
     else
       # fallback to this being an internal responsibility to assign a trace id
       conn.assigns[:trace_id]
@@ -138,5 +127,33 @@ defmodule Hummingbird do
     |> Base.encode16()
     |> binary_part(0, length)
     |> String.downcase()
+  end
+
+  @doc """
+  Produces a random trace ID.
+
+  Follows the same generation rules as a span ID, but 32 characters are used
+  instead of 16.
+  """
+  def random_trace_id, do: random_span_id(32)
+
+  defp metadata_from_conn(%Plug.Conn{} = conn) do
+    scheme = Atom.to_string(conn.scheme)
+
+    url =
+      %URI{
+        scheme: scheme,
+        path: conn.request_path,
+        port: conn.port,
+        host: conn.host
+      }
+      |> URI.to_string()
+
+    %{
+      url: url,
+      status_code: conn.status,
+      method: conn.method,
+      protocol: scheme
+    }
   end
 end
