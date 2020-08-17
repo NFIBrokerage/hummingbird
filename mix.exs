@@ -19,7 +19,6 @@ defmodule Hummingbird.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -30,7 +29,6 @@ defmodule Hummingbird.MixProject do
         dialyzer: :test,
         bless: :test
       ],
-      dialyzer: [ignore_warnings: ".dialyzer.ignore_warnings"],
       test_coverage: [tool: ExCoveralls],
       package: package(),
       description: description(),
@@ -74,32 +72,9 @@ defmodule Hummingbird.MixProject do
       {:plug, "~> 1.7"},
       {:elixir_uuid, "~> 1.2"},
       {:opencensus_honeycomb, "~> 0.2.1"},
+      {:bless, "~> 1.0"},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.11", only: :test}
     ]
-  end
-
-  defp aliases do
-    [
-      bless: [&bless/1]
-    ]
-  end
-
-  defp bless(_) do
-    [
-      {"compile", ["--force", "--warnings-as-errors"]},
-      {"coveralls.html", []},
-      {"format", ["--check-formatted"]},
-      {"credo", []},
-      {"dialyzer", []}
-    ]
-    |> Enum.each(fn {task, args} ->
-      [:cyan, "Running #{task} with args #{inspect(args)}"]
-      |> IO.ANSI.format()
-      |> IO.puts()
-
-      Mix.Task.run(task, args)
-    end)
   end
 end
