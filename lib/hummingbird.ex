@@ -40,7 +40,7 @@ defmodule Hummingbird do
         :span_id,
         # always set afterwards so as to accomodate the initial parent_id,
         # which should be nil
-        UUID.uuid4()
+        random_span_id()
       )
 
     [
@@ -70,12 +70,15 @@ defmodule Hummingbird do
       data: %{
         conn: Helpers.sanitize(conn),
         caller: opts.caller,
-        trace_id: conn.assigns[:trace_id],
-        span_id: conn.assigns[:span_id],
-        parent_id: conn.assigns[:parent_id],
+        traceId: conn.assigns[:trace_id],
+        id: conn.assigns[:span_id],
+        parentId: conn.assigns[:parent_id],
         user_id: conn.assigns[:current_user][:user_id],
         route: conn.assigns[:request_path],
-        service_name: opts.service_name
+        serviceName: opts.service_name,
+        name: opts.service_name
+        # when applicable, add durationMs
+        # ---
         # Does not appear important in the honeycomb.ui, leaving off
         #
         # name: "http_request",
@@ -121,5 +124,19 @@ defmodule Hummingbird do
       # fallback to this being an internal responsibility to assign a trace id
       conn.assigns[:trace_id]
     end
+  end
+
+  @doc """
+  Produces a random span ID.
+
+  Produces a string of lowercase hex-encoded characters of length 16 by
+  default.
+  """
+  def random_span_id(length \\ 16) do
+    length
+    |> :crypto.strong_rand_bytes()
+    |> Base.encode16()
+    |> binary_part(0, length)
+    |> String.downcase()
   end
 end
