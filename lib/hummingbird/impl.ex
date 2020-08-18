@@ -34,7 +34,7 @@ defmodule Hummingbird.Impl do
     if get_in(conn.private, [:hummingbird, :span_id]) == nil do
       Hummingbird.random_span_id()
     else
-      conn.private.hummingbird.trace_id
+      conn.private.hummingbird.span_id
     end
   end
 
