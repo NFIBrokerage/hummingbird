@@ -80,8 +80,6 @@ defmodule Hummingbird do
         # kind: "span_event"
       }
     }
-
-    # |> IO.inspect(label: :event)
   end
 
   @doc """
