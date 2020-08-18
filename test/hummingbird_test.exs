@@ -3,10 +3,12 @@ defmodule HummingbirdTest do
   use Plug.Test
   doctest Hummingbird
 
+  import Mox
+
+  setup :verify_on_exit!
+
   setup do
-    [
-      opts: %{caller: FicticiousModuleShippingEvents, service_name: "example_service"}
-    ]
+    [opts: [service_name: "example_service"]]
   end
 
   describe "given no x-b3-traceid header," do
@@ -20,8 +22,8 @@ defmodule HummingbirdTest do
          c do
       actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
 
-      assert not is_nil(actual_conn.assigns.trace_id)
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert not is_nil(actual_conn.private.hummingbird.trace_id)
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
     end
   end
 
@@ -36,10 +38,10 @@ defmodule HummingbirdTest do
          c do
       actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
 
-      assert not is_nil(actual_conn.assigns.trace_id)
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert not is_nil(actual_conn.private.hummingbird.trace_id)
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
 
-      assert is_nil(actual_conn.assigns.parent_id)
+      assert is_nil(actual_conn.private.hummingbird.parent_id)
     end
   end
 
@@ -55,12 +57,12 @@ defmodule HummingbirdTest do
       ]
     end
 
-    test "call/2 returns conn with trace, parent, and span ids in assigns, with trace id passing through",
+    test "call/2 returns conn with trace, parent, and span ids in private.hummingbird, with trace id passing through",
          c do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
-      assert actual_conn.assigns.trace_id === c.expected_id
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert actual_conn.private.hummingbird.trace_id === c.expected_id
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
     end
   end
 
@@ -74,13 +76,13 @@ defmodule HummingbirdTest do
       ]
     end
 
-    test "call/2 returns conn with new trace, and span ids in assigns and no parent",
+    test "call/2 returns conn with new trace, and span ids in private.hummingbird and no parent",
          c do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
-      assert not is_nil(actual_conn.assigns.trace_id)
-      assert is_nil(actual_conn.assigns.parent_id)
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert not is_nil(actual_conn.private.hummingbird.trace_id)
+      assert is_nil(actual_conn.private.hummingbird.parent_id)
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
     end
   end
 
@@ -96,13 +98,13 @@ defmodule HummingbirdTest do
       ]
     end
 
-    test "call/2 returns conn with trace, parent, and span ids in assigns, with parent id matching original span",
+    test "call/2 returns conn with trace, parent, and span ids in private.hummingbird, with parent id matching original span",
          c do
       actual_conn = Hummingbird.call(c.conn_with_header, c.opts)
 
-      assert actual_conn.assigns.parent_id === c.expected_id
-      assert not is_nil(actual_conn.assigns.trace_id)
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert actual_conn.private.hummingbird.parent_id === c.expected_id
+      assert not is_nil(actual_conn.private.hummingbird.trace_id)
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
     end
   end
 
@@ -117,9 +119,9 @@ defmodule HummingbirdTest do
          c do
       actual_conn = Hummingbird.call(c.conn_without_header, c.opts)
 
-      assert actual_conn.assigns.parent_id === nil
-      assert not is_nil(actual_conn.assigns.trace_id)
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert actual_conn.private.hummingbird.parent_id === nil
+      assert not is_nil(actual_conn.private.hummingbird.trace_id)
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
     end
   end
 
@@ -133,20 +135,57 @@ defmodule HummingbirdTest do
         expected_parent_id: expected_parent_id,
         fully_loaded_conn:
           conn(:get, "/foo")
-          |> assign(:span_id, expected_parent_id)
-          |> assign(:trace_id, expected_trace_id)
-          |> assign(:parent_id, UUID.uuid4())
+          |> put_private(:phoenix_endpoint, FooWeb.Endpoint)
+          |> put_private(:hummingbird, %{
+            span_id: expected_parent_id,
+            trace_id: expected_trace_id,
+            parent_id: UUID.uuid4(),
+            sample?: true
+          })
           |> put_req_header("x-b3-spanid", UUID.uuid4())
           |> put_req_header("x-b3-traceid", UUID.uuid4())
+          |> put_req_header("x-b3-sampled", "0")
       ]
     end
 
     test "parent and trace ids are not overwritten by header", c do
       actual_conn = Hummingbird.call(c.fully_loaded_conn, c.opts)
 
-      assert actual_conn.assigns.parent_id === c.expected_parent_id
-      assert actual_conn.assigns.trace_id === c.expected_trace_id
-      assert not is_nil(actual_conn.assigns.span_id)
+      assert actual_conn.private.hummingbird.parent_id === c.expected_parent_id
+      assert actual_conn.private.hummingbird.trace_id === c.expected_trace_id
+      assert not is_nil(actual_conn.private.hummingbird.span_id)
+    end
+
+    test "propagation_headers/1 puts trace information into header format", c do
+      headers = Hummingbird.propagation_headers(c.fully_loaded_conn)
+
+      get_header = &Enum.find_value(headers, fn {k, v} -> k == &1 && v end)
+
+      assert get_header.("x-b3-traceid") == c.expected_trace_id
+      assert get_header.("x-b3-sampled") == "1"
+    end
+
+    test "emitting a telemetry event for phoenix triggers a batch send", c do
+      telemetry_pid = start_supervised!(Hummingbird.Telemetry)
+      self = self()
+
+      SenderMock
+      |> expect(:send_batch, 1, fn events ->
+        assert [%Opencensus.Honeycomb.Event{}] = events
+
+        send(self, :done)
+      end)
+      |> allow(self(), telemetry_pid)
+
+      conn = Hummingbird.call(c.fully_loaded_conn, c.opts)
+
+      :telemetry.execute([:phoenix, :endpoint, :stop], %{duration: 42_660_714}, %{conn: conn})
+
+      assert_receive :done
+
+      stop_supervised(telemetry_pid)
+
+      :ok
     end
   end
 
@@ -154,7 +193,7 @@ defmodule HummingbirdTest do
     test "init/1 passes only the caller attribute" do
       actual_opts = Hummingbird.init(moo: :foo, caller: "thisthing", service_name: "yourservice")
 
-      assert actual_opts === %{caller: "thisthing", service_name: "yourservice"}
+      assert actual_opts === [service_name: "yourservice"]
     end
   end
 
