@@ -25,9 +25,14 @@ defmodule Hummingbird.Instrumentation do
 
         {time, conn_after_execution} = :timer.tc(fn -> super(conn_before_execution, opts) end)
 
+        opts =
+          unquote(opts)
+          |> Keyword.put(:caller, inspect(__MODULE__) <> ".call/2")
+          |> Hummingbird.init()
+
         conn_after_execution
         |> assign(:request_duration_native, time)
-        |> Hummingbird.send_span(unquote(opts) |> Hummingbird.init())
+        |> Hummingbird.send_span(opts)
 
         conn_after_execution
       end
