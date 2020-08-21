@@ -6,11 +6,31 @@ Given appropriate trace headers, ships an event for router and response calls.
 **This library is under active development**
 
 ## To Use
+
 ```elixir
 defmodule YourAppWeb.YourController do
   use YourAppWeb, :controller
 
-  plug(Hummingbird, caller: __MODULE__, service_name: "your_service_name")
+  plug Hummingbird, service_name: "your_service_name"
+end
+```
+
+and add the `Hummingbird.Telemetry` child to your supervision tree:
+
+```elixir
+defmodule YouApp.Application do
+  ..
+
+  def start(_type, _args) do
+    children = [
+      Hummingbird.Telemetry,
+      ..
+    ]
+
+    Supervisor.start_link(children, strategy: :one_for_one, name: YourApp.Supervisor)
+  end
+
+  ..
 end
 ```
 
