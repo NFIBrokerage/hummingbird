@@ -11,7 +11,8 @@ defmodule Hummingbird.Impl do
     %{
       conn
       | private: nil,
-        secret_key_base: nil
+        secret_key_base: nil,
+        assigns: Map.take(conn.assigns, [:current_user, :admin_user])
     }
   end
 
