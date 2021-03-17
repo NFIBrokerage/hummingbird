@@ -72,7 +72,7 @@ defmodule Hummingbird.MixProject do
       {:plug, "~> 1.7"},
       {:elixir_uuid, "~> 1.2"},
       {:opencensus_honeycomb, "~> 0.2.1"},
-      {:bless, "~> 1.0"},
+      {:bless, "~> 1.0", only: [:dev, :test]},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.11", only: :test},
       {:mox, "~> 0.5", only: :test}
