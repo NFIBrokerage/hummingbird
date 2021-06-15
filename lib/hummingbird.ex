@@ -74,6 +74,7 @@ defmodule Hummingbird do
   def build_generic_honeycomb_event(%{private: %{hummingbird: hummingbird}} = conn) do
     %Event{
       time: hummingbird.span_start,
+      samplerate: 1,
       data: %{
         conn: Impl.sanitize(conn),
         component: "app",
