@@ -76,7 +76,7 @@ defmodule Hummingbird do
       time: hummingbird.span_start,
       samplerate: 1,
       data: %{
-        conn: Impl.sanitize(conn),
+        conn: conn |> Impl.sanitize() |> Impl.encode_params(),
         component: "app",
         name: Impl.endpoint_name(conn),
         traceId: hummingbird.trace_id,

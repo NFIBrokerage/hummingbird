@@ -16,8 +16,29 @@ defmodule Hummingbird.Impl do
     }
   end
 
+  # JSON encode all params fields in the conn.
+  # this reduces the risk of exhausting the Honeycomb column count.
+  # Honeycomb can then be configured to unpack encoded fields to configurable
+  # depth if you still want structured fields/columns for these params.
+  def encode_params(conn) do
+    %{
+      conn
+      | params: encode_fetched_params(conn.params),
+        body_params: encode_fetched_params(conn.body_params),
+        path_params: encode_fetched_params(conn.path_params),
+        query_params: encode_fetched_params(conn.query_params)
+    }
+  end
+
+  defp encode_fetched_params(params) do
+    case params do
+      %Plug.Conn.Unfetched{} -> params
+      _ -> Jason.encode!(params)
+    end
+  end
+
   def endpoint_name(conn) do
-    inspect(conn.private.phoenix_endpoint) <> ".call/2"
+    inspect(conn.private[:phoenix_endpoint])
   end
 
   def parent_id(conn) do

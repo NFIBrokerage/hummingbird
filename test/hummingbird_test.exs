@@ -11,6 +11,39 @@ defmodule HummingbirdTest do
     [opts: [service_name: "example_service"]]
   end
 
+  describe "given a conn with all params fields populated," do
+    setup do
+      path_params = %{"my_path_param_key" => "my_path_param_value"}
+
+      conn =
+        conn(:get, "/foo?my_query_param_key=my_query_param_value", %{
+          my_body_param_key: "my_body_param_value"
+        })
+        |> Plug.Conn.fetch_query_params()
+        |> Map.put(:path_params, path_params)
+        |> Map.update!(:params, fn params -> Map.merge(params, path_params) end)
+
+      [
+        conn: conn
+      ]
+    end
+
+    test "send_spans/1 yields honeycomb events with json encoded params fields",
+         c do
+      expect(SenderMock, :send_batch, 1, fn events ->
+        assert [event] = events
+        assert {:ok, _} = Jason.decode(event.data.conn.params)
+        assert {:ok, _} = Jason.decode(event.data.conn.body_params)
+        assert {:ok, _} = Jason.decode(event.data.conn.path_params)
+        assert {:ok, _} = Jason.decode(event.data.conn.query_params)
+      end)
+
+      c.conn
+      |> Hummingbird.call(c.opts)
+      |> Hummingbird.send_spans()
+    end
+  end
+
   describe "given no x-b3-traceid header," do
     setup do
       [
