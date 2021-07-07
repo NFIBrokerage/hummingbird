@@ -6,7 +6,7 @@ defmodule Hummingbird.MixProject do
   # a special module attribute that recompiles if targeted file has changed
   @external_resource @version_file
 
-  @version (case Regex.run(~r/^v([\d\.]+)/, File.read!(@version_file), capture: :all_but_first) do
+  @version (case Regex.run(~r/^v([\d\.\w-]+)/, File.read!(@version_file), capture: :all_but_first) do
               [version] -> version
               nil -> "0.0.0"
             end)
