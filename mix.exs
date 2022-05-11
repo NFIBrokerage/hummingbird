@@ -74,7 +74,7 @@ defmodule Hummingbird.MixProject do
       {:opencensus_honeycomb, "~> 0.3"},
       {:jason, "~> 1.0"},
       {:bless, "~> 1.0", only: [:dev, :test]},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.11", only: :test},
       {:mox, "~> 0.5", only: :test}
     ]

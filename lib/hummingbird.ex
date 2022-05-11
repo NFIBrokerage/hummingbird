@@ -95,7 +95,9 @@ defmodule Hummingbird do
     }
   end
 
+  # coveralls-ignore-start
   def build_generic_honeycomb_event(_conn), do: nil
+  # coveralls-ignore-stop
 
   @doc """
   Produces a random span ID.
