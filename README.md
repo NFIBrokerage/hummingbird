@@ -1,6 +1,6 @@
 # Hummingbird
 
-A plug to correlate events between services in two lines of Elixir.
+A plug to correlate events between services in a ✋ful lines of Elixir.
 
 Given appropriate trace headers, ships an event for router and response calls.
 
