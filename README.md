@@ -4,6 +4,9 @@ A plug to correlate events between services in two lines of Elixir.
 
 Given appropriate trace headers, ships an event for router and response calls.
 
+## Use Case
+ For reasons, you may not have access to configure structured logging and log shipping.  If you can control your controller, this might help.  It's dangerous out there, take this.
+
 ## To Use
 
 ```elixir
