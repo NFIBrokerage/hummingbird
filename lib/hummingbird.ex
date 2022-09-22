@@ -27,7 +27,7 @@ defmodule Hummingbird do
   alias Opencensus.Honeycomb.Event
   alias Hummingbird.Impl
 
-  @sender Application.get_env(:hummingbird, :sender, Hummingbird.Sender)
+  @sender Application.compile_env(:hummingbird, :sender, Hummingbird.Sender)
 
   @doc false
   def init(opts), do: Keyword.take(opts, [:service_name])
