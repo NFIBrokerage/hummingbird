@@ -1,9 +1,11 @@
 # Hummingbird
-A plug to correlate events between services in two lines of Elixir.
+
+A plug to correlate events between services in a ✋ful lines of Elixir.
 
 Given appropriate trace headers, ships an event for router and response calls.
 
-**This library is under active development**
+## Use Case
+ For reasons, you may not have access to configure structured logging and log shipping.  If you can control your controller, this might help.  It's dangerous out there, take this.
 
 ## To Use
 
@@ -19,31 +21,36 @@ and add the `Hummingbird.Telemetry` child to your supervision tree:
 
 ```elixir
 defmodule YouApp.Application do
-  ..
+  # ..
 
   def start(_type, _args) do
     children = [
       Hummingbird.Telemetry,
-      ..
+      # ..
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: YourApp.Supervisor)
   end
 
-  ..
+  # ..
 end
 ```
 
 ## Configuration
+
 **Configure OpenCensus**
+
 In your config.exs:
+
 ```elixir
 # configure opencensus
 config :opencensus,
   reporters: [{Opencensus.Honeycomb.Reporter, []}],
   send_interval_ms: 1000
 ```
+
 **Set the dataset per environment**
+
 In your dev, prod, exs files:
 
 ```elixir
@@ -57,8 +64,8 @@ config :opencensus_honeycomb,
 ```
 
 ## Assumptions
-Currently, it looks for `x-b3-spanid` and `x-b3-traceid` headers on incoming request to create the trace.
 
+Currently, it looks for `x-b3-spanid` and `x-b3-traceid` headers on incoming request to create the trace.
 
 ## Current Example
 

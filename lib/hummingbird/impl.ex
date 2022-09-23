@@ -32,7 +32,9 @@ defmodule Hummingbird.Impl do
 
   defp encode_fetched_params(params) do
     case params do
+      # coveralls-ignore-start
       %Plug.Conn.Unfetched{} -> params
+      # coveralls-ignore-stop
       _ -> Jason.encode!(params)
     end
   end
@@ -104,14 +106,23 @@ defmodule Hummingbird.Impl do
   def convert_time_unit(nil), do: nil
 
   def convert_time_unit(time) when is_integer(time) do
+    # coveralls-ignore-start
     System.convert_time_unit(time, :native, :microsecond) / 1000
+    # coveralls-ignore-stop
   end
 
   def sampling_state_to_header_value(conn) do
     case sampling_state(conn) do
-      true -> "1"
-      false -> "0"
-      nil -> nil
+      # coveralls-ignore-start
+      true ->
+        "1"
+
+      false ->
+        "0"
+
+      nil ->
+        nil
+        # coveralls-ignore-stop
     end
   end
 end

@@ -40,8 +40,10 @@ defmodule Hummingbird.Telemetry do
       ) do
     conn
     |> Plug.Conn.assign(:request_duration_native, duration_native)
+    # coveralls-ignore-start
     |> Hummingbird.send_spans()
 
     state
+    # coveralls-ignore-stop
   end
 end
