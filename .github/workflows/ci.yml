@@ -3,7 +3,7 @@ name: Actions CI
 on: push
 
 env:
-  CUATRO_HEX_KEY: ${{ secrets.CUATRO_HEX_KEY }}
+  CUATRO_HEX_KEY: ${{ secrets.HUMMINGBIRD_HEXPM_PUBLISH_KEY }}
 
 jobs:
   bless:
