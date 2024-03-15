@@ -14,16 +14,16 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Restore the deps cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: deps
         key: ${{ runner.os }}-deps-${{ env.MIX_ENV }}
 
     - name: Restore the _build cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: _build
         key: ${{ runner.os }}-build-${{ env.MIX_ENV }}
